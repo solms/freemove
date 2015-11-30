@@ -1,6 +1,6 @@
 #FreeMove
 ####A final year engineering project by Solms Dykman.
-Note: This is the web application that accompanies the physical logging units. For more information, please view the complete documentation [here](https://www.dropbox.com/s/7fj30pihaqzhlf3/SDykman--FinalDissertation.pdf?dl=0). A live version of the web application can be found [here](freemove.meteor.com).
+Note: This is the web application that accompanies the physical logging units. For more information, please view the complete documentation [here](https://www.dropbox.com/s/7fj30pihaqzhlf3/SDykman--FinalDissertation.pdf?dl=0). A live version of the web application can be found [here](http://freemove.meteor.com).
 
 ###Abstract
 This project aims to provide a solution that aids decision makers in effective fund allocation when infrastructure upgrades are targeted, specifically when said infrastructure is to be improved for persons with disabilities.
