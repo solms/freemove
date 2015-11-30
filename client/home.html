@@ -1,0 +1,11 @@
+<template name="home">
+	<div align="center" style="margin-top: 20px">
+		<h1>Welcome to FreeMove.</h1>
+		<h4>Here data is added and visualized in order to provide a platform for effective resource planning.</h4>
+		{{#if loggedIn}}
+			<p><em>Welcome, <b>{{loggedIn.username}}</b>.</em></p>
+		{{else}}
+			<p><em>Please log in to continue.</em></p>
+		{{/if}}
+	</div>
+</template>

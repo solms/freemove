@@ -1,0 +1,27 @@
+#map-canvas {
+    width: 100%;
+    height: 600px;
+}
+
+#map-info {
+	word-spacing:2pt;
+	font-size:12px;
+	text-align:center;
+	font-family:arial black, sans-serif;
+}
+
+#dropbox {
+	width: 350px;
+	height: 60px;
+	border: 4px dashed #B0B0B0;
+	margin-left: auto;
+    margin-right: auto;
+    font-weight:bold;
+	color:#B0B0B0;	
+	letter-spacing:1pt;
+	word-spacing:2pt;
+	font-size:20px;
+	text-align:center;
+	font-family:arial black, sans-serif;
+	line-height:1;
+}

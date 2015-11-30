@@ -1,0 +1,158 @@
+var first = true;
+
+Template.data.rendered = function () {
+    // Check for the various File API support.
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+      // Great success! All the File APIs are supported.
+      toastr.info('Your browser supports the HTML5 File APIs.', 'Good stuff');
+    } else {
+      toastr.error('Your browser does not support the HTML5 File APIs.', 'Oh no');
+    }
+
+    var dropZone = document.getElementById('dropbox');
+    dropZone.addEventListener('dragover', handleDragOver, false);
+    dropZone.addEventListener('drop', handleFiles, false);  
+}
+
+Template.home.rendered = function () {
+    if (first){
+        var displayed_in = false;
+        var displayed_none = false;
+        first = false;
+    }    
+    Deps.autorun(function () {
+      if (Meteor.user() && !displayed_in){
+        toastr.clear();
+        toastr.success("You have signed in succesfully.", "Hello.");
+        displayed_in = true;
+        displayed_none = false;
+      } else if (!displayed_none) {
+        toastr.clear();
+        toastr.info("No one is currently logged in.", "");
+        displayed_none = true;
+        displayed_in = false;
+      }
+    });
+}
+
+function newRead(text, set) {
+    var lines = text.split("$");
+    var counter = 0;
+    var prev_lat = 0.0;
+    var prev_lng = 0.0;
+    _.each(lines, function(line) {
+        var split_line = line.split(",");
+        if (split_line[2] == "A") {
+            var coord_obj = {
+                time:       parseFloat(split_line[1]),
+                lat:        convertToDecimal(split_line[3], "lat", split_line[4]),
+                lon:        convertToDecimal(split_line[5], "lng", split_line[6]),
+                speed:      parseFloat(split_line[7]),
+                type:       "A",
+                set:        set
+            }
+            
+            var far_enough = distToPrev(prev_lat, prev_lng, coord_obj.lat, coord_obj.lon);
+
+            if(far_enough){
+                Coordinates.insert(coord_obj);
+                // Set previous values and update counter
+                prev_lat = coord_obj.lat;
+                prev_lng = coord_obj.lon;
+            }            
+        }
+        else {
+            console.log("No valid GPS fix for this entry.");
+        }        
+    });
+}
+
+// Converts GPS data points to decimal coordinates
+// Decimal value = Degrees + (Minutes/60) + (Seconds/3600)
+function convertToDecimal(val, latlng, dir) {
+    var dec_result = 0;
+    if (latlng == "lat"){
+        dec_result += parseFloat(val.substring(0,2));
+        dec_result += parseFloat(val.substring(2)) / 60;
+        if (dir == "S"){
+            dec_result *= -1.0;
+        }
+    }
+    else if (latlng == "lng"){
+        dec_result += parseFloat(val.substring(0,3));
+        dec_result += parseFloat(val.substring(3)) / 60;
+        if (dir == "W"){
+            dec_result *= -1.0;
+        }
+    }
+    return dec_result;
+}
+
+// Calculates the distance between the previous coordinate and the new one
+// for the purpose of a "Trackpoint Distance Threshold" filter
+function distToPrev(lat1, lng1, lat2, lng2) {
+    // Using the Haversine formula
+    // a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
+    // c = 2 ⋅ atan2( √a, √(1−a) )
+    // d = R ⋅ c 
+    // Credits: http://www.movable-type.co.uk/scripts/latlong.html
+    var R = 6371000; // metres
+    var radlat1 = degToRad(lat1);    
+    var radlat2 = degToRad(lat2);
+    var deltaLat = degToRad(lat2 - lat1);
+    var deltaLng = degToRad(lng2 - lng1);
+
+    var a = (Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)) 
+            + ( (Math.cos(radlat1) * Math.cos(radlat2))
+            * (Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2)) ); 
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var d = R * c;
+
+    if (d < 10){
+        return false;
+    }
+    else{
+        return true;
+    }
+}
+
+// Converts degrees to radians
+function degToRad(degrees) {
+    return (degrees * Math.PI / 180);
+}
+
+function handleFiles(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    var files = e.dataTransfer.files;
+
+    var output = [];
+    var set = 0;
+
+    for (var i = 0, f; f = files[i]; i++) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var text = reader.result;
+            newRead(text, set);
+            set += 1;
+        }
+
+        reader.readAsText(f);
+    }
+
+    toastr.info("Coordinates succesfully added to the database.", "Done")
+}
+
+function handleDragOver(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+  }
+
+Accounts.ui.config({
+    passwordSignupFields: 'USERNAME_ONLY'
+});
+
+
+
